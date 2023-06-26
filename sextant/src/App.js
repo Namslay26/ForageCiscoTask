@@ -1,49 +1,52 @@
-
+import React from 'react';
 import './App.css';
 import Banner from './Banner';
 import Component from './Component';
-
-function GetIP(props) {
-  let url = ""
-  let ipAddr = ""
-
-  //checks which IP version is passed in
-  if (props.type === 'IPV4') {
-    url = "https://api.ipify.org?format=json";
-    console.log('4');
-  } else if (props.type === 'IPV6') {
-    url = "https://api64.ipify.org?format=json";
-    console.log('6');
-  }
-
-  fetch(url)
-    .then((response) => response.json())
-    .then((data) => {
-      /*
-      console.log(url);
-      console.log(data.ip);
-      */
-      ipAddr = data.ip;
-
-      //appends ip if not already displayed on page
-      if (!document.getElementsByClassName('IPsection')[0].innerHTML.includes('IPV6') || !document.getElementsByClassName('IPsection')[0].innerHTML.includes('IPV4')) {
-        document.getElementsByClassName('IPsection')[0].innerHTML += '<h3>' + props.type + ': ' + ipAddr + '</h3>';
-      };
-    }
-    );
-
-}
+import axios from 'axios'
 
 function App() {
+  const [v4address, setv4address] = React.useState([])
+  const [v6address, setv6address] = React.useState([])
+
+  React.useEffect(()=>{
+    async function getipv4(){
+      const v4 = await axios.get("https://api.ipify.org");
+      setv4address(v4.data);
+      return v4.data;
+    }
+    const ipv4 = getipv4();
+  },[])
+
+  React.useEffect(()=>{
+    async function getipv6(){
+      const v6 = await axios.get("https://api64.ipify.org")
+      setv6address(v6.data)
+      return v6.data
+    }
+    const ipv6 = getipv6();
+  },[])
+
+  const [latencyInfo, setLatencyInfo] = React.useState();
+
+  React.useEffect(() => {
+    const ws = new WebSocket("ws://localhost:55455");
+
+    ws.onmessage = function getInfo(e) {
+      var serverTime = Number(e.data);
+      var clientTime = new Date().getTime();
+      const latency = (clientTime - serverTime) / 1000;
+      setLatencyInfo(latency);
+    };
+  }, []);
+
+
   return (
     <div className="App">
       <Banner title={"Welcome to the title"}></Banner>
       <div className=" flex">
-        <Component content={'This is a component!'}></Component>
-        <Component content={'This is a component!'}></Component>
+        <Component title="Your ip address:" children={<><span>{v4address}</span><br /><span>{v6address}</span></>}></Component>
+        <Component title="Latency:" children={<><span>{latencyInfo} seconds</span></>}></Component>
         <div className='IPsection'>
-        <GetIP type="IPV4"></GetIP>
-        <GetIP type="IPV6"></GetIP>
         </div>
       </div>
     </div>

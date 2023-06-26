@@ -1,7 +1,14 @@
 import React from 'react'
 
-export default function Component({content}) {
+export default function Component(props) {
   return (
-    <div className=' px-4 py-2 shadow-lg shadow-gray-300'><p>{content}</p></div>
+    <div className=' shadow-md shadow-indigo-300'>
+      <div>
+        <h1 className=' font-semibold text-3xl'>
+          {props.title}
+        </h1>
+        {props.children}
+      </div>
+    </div>
   )
 }
